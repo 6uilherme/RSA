@@ -103,7 +103,7 @@ def verifica_assinatura_arquivo(mensagem_assinada = "mensagem_assinada_base64.tx
     # Abre os arquivos e lê os conteúdos
     try:
         with open(mensagem_assinada, 'r', encoding='utf-8') as arquivo:
-            mensagem_assinada = arquivo.read()  # Lê o conteúdo do arquivo como uma string
+            mensagem_assinada = arquivo.read()  # lê o conteúdo do arquivo como uma string
     except FileNotFoundError:
         print(f"Erro: O arquivo '{mensagem_assinada}' não foi encontrado.")
     except UnicodeDecodeError:
@@ -141,14 +141,12 @@ def verifica_assinatura_arquivo(mensagem_assinada = "mensagem_assinada_base64.tx
         return not assinatura_valida
 
 def main_assinatura():
-
-    print("Assinatura")
     mensagem = "serei assinada"
-    k = 2048
     n_seed = 1024
     # geração de chaves
     n, d, e = gera_chaves()
 
+    # assinatura de string
     mensagem_assinada, assinatura = assina_string(n, d, e, mensagem, n_seed)
     print("mensagem assinada:")
     print(mensagem_assinada)
@@ -162,6 +160,7 @@ def main_assinatura():
         print("erro na assinatura")
         return not assinatura_valida
 
+    # assinatura de arquivo
     mensagem_assinada, assinatura = assina_arquivo(n, d, e, "mensagem.txt", n_seed)
     print("mensagem assinada:")
     print(mensagem_assinada)

@@ -1,6 +1,5 @@
 import unittest
 import hashlib
-import rsa
 import assinatura
 import oaep
 

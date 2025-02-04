@@ -18,36 +18,33 @@ def mgf1(seed, mask_len):
         # concatena o hash da semente e do contador
         t += sha3_256(seed + c).digest()
 
-    # 4. Output the leading l octets of T as the octet string mask.
     return t[:mask_len]
 
 def xor_bytes(a, b):
     return bytes(x ^ y for x, y in zip(a, b))
-
-# def mgf(seed, length, hash_func=hashlib.sha3_256):
-#     h_len = hash_func().digest_size
-#     counter = 0
-#     output = b''
-#     while len(output) < length:
-#         C = seed + counter.to_bytes(4, 'big')
-#         output += hash_func(C).digest()
-#         counter += 1
-#     return output[:length]
 
 def oaep_encode(message, label=b'', hash_func=hashlib.sha3_256):
    h_len = hash_func().digest_size
    k = 2048
    max_message_len = k // 8 - 2 * h_len - 2
    if len(message) > max_message_len:
-        raise ValueError("Mensagem muito longa para o tamanho da chave")   # Passo 1: Gerar um padding PS de zeros
-   ps = b'\x00' * (max_message_len - len(message))   # Passo 2: Concatenar o hash do label, o padding PS, um byte 0x01 e a mensagem
+        raise ValueError("Mensagem muito longa para o tamanho da chave")
+   # gerar um padding PS de zeros
+   ps = b'\x00' * (max_message_len - len(message))
+   # concatenar o hash do label, o padding PS, um byte 0x01 e a mensagem
    l_hash = hash_func(label).digest()
-   db = l_hash + ps + b'\x01' + message   # Passo 3: Gerar uma seed aleatória
-   seed = os.urandom(h_len)   # Passo 4: Aplicar a função MGF1 à seed para gerar dbMask
-   db_mask = mgf1(seed, len(db))   # Passo 5: XOR entre db e dbMask para gerar maskedDB
-   masked_db = xor_bytes(db, db_mask)   # Passo 6: Aplicar a função MGF1 ao maskedDB para gerar seedMask
-   seed_mask = mgf1(masked_db, h_len)   # Passo 7: XOR entre a seed e seedMask para gerar maskedSeed
-   masked_seed = xor_bytes(seed, seed_mask)   # Passo 8: Concatenar o maskedSeed e o maskedDB para formar o EM (Encoded Message)
+   db = l_hash + ps + b'\x01' + message
+   # gerar uma seed aleatória
+   seed = os.urandom(h_len)
+   # aplicar a função MGF1 à seed para gerar dbMask
+   db_mask = mgf1(seed, len(db))
+   # XOR entre db e dbMask para gerar maskedDB
+   masked_db = xor_bytes(db, db_mask)
+   # aplicar a função MGF1 ao maskedDB para gerar seedMask
+   seed_mask = mgf1(masked_db, h_len)
+   # XOR entre a seed e seedMask para gerar maskedSeed
+   masked_seed = xor_bytes(seed, seed_mask)
+   # concatenar o maskedSeed e o maskedDB para formar o EM (Encoded Message)
    em = b'\x00' + masked_seed + masked_db
    return em
 
@@ -55,24 +52,30 @@ def oaep_decode(em, label=b'', hash_func=hashlib.sha3_256):
    k = 2048
    h_len = hash_func().digest_size
    if len(em) != k // 8:
-        raise ValueError("Tamanho do EM inválido")   # Passo 1: Separar o maskedSeed e o maskedDB
+        raise ValueError("Tamanho do EM inválido")
+   # separar o maskedSeed e o maskedDB
    masked_seed = em[1:1 + h_len]
-   masked_db = em[1 + h_len:]   # Passo 2: Aplicar a função MGF1 ao maskedDB para gerar seedMask
-   seed_mask = mgf1(masked_db, h_len)   # Passo 3: XOR entre o maskedSeed e seedMask para recuperar a seed
-   seed = xor_bytes(masked_seed, seed_mask)   # Passo 4: Aplicar a função MGF1 à seed para gerar dbMask
-   db_mask = mgf1(seed, len(masked_db))   # Passo 5: XOR entre o maskedDB e dbMask para recuperar o DB
-   db = xor_bytes(masked_db, db_mask)   # Passo 6: Separar o lHash, o padding PS, o byte 0x01 e a mensagem
+   masked_db = em[1 + h_len:]
+   # aplicar a função MGF1 ao maskedDB para gerar seedMask
+   seed_mask = mgf1(masked_db, h_len)
+   # XOR entre o maskedSeed e seedMask para recuperar a seed
+   seed = xor_bytes(masked_seed, seed_mask)
+   # aplicar a função MGF1 à seed para gerar dbMask
+   db_mask = mgf1(seed, len(masked_db))
+   # XOR entre o maskedDB e dbMask para recuperar o DB
+   db = xor_bytes(masked_db, db_mask)
+   # separar o lHash, o padding PS, o byte 0x01 e a mensagem
    l_hash = db[:h_len]
    ps_index = db[h_len:].find(b'\x01')
    if ps_index == -1:
         raise ValueError("Decodificação falhou: byte 0x01 não encontrado")
    ps = db[h_len:h_len + ps_index]
-   message = db[h_len + ps_index + 1:]   # Passo 7: Verificar se o lHash está correto
+   message = db[h_len + ps_index + 1:]
+   # verificar se o lHash está correto
    if l_hash != hash_func(label).digest():
         raise ValueError("Decodificação falhou: lHash incorreto")
-   return message# Exemplo de uso
+   return message
 
-# Exemplo de uso completo
 def main_oaep():
     message = b"Hello, OAEP with SHA-3!"
     label = b"OAEP Example"

@@ -55,7 +55,7 @@ class Main:
         n = input()
         if n == "1":
             print("Numero de bits da chave:")
-            self.bits = input()
+            self.bits = int(input())
             print("Numero de repetições:")
             t = input()
             print("Por favor, aguarde")
@@ -169,4 +169,5 @@ class Main:
         else:
             return
 
-Main().main()
+if __name__ == "__main__":
+    Main().main()

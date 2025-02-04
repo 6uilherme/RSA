@@ -108,6 +108,7 @@ def decifracao_rsa(c, d_hex, n_hex):
     d = int(d_hex,16)
     return pow(c, d, n)
 
+# converte string para base 64
 def string_base64(input_string: str, d_hex, n_hex, num_bytes, seed):
     # codifica seed para inteiro
     num_bytes_seed = len(seed)
@@ -123,10 +124,10 @@ def string_base64(input_string: str, d_hex, n_hex, num_bytes, seed):
     # Retorna como uma string
     return encoded_data.decode('utf-8')
 
+# converte base 64 para string
 def base64_string(encoded_string):
     # decodifica a base64
     bloco = b64decode(encoded_string).decode('utf-8')
-
     # divide o bloco
     output_string = ""
     for i in range(len(bloco)):
